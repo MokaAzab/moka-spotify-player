@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Moka Spotify Player</title>
+  <style>
+    body {
+      margin: 0;
+      height: 100vh;
+      background: #000;
+      color: #fff;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      font-family: system-ui, sans-serif;
+    }
+    button {
+      background: #1db954;
+      border: none;
+      color: #fff;
+      padding: 12px 24px;
+      border-radius: 25px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+    #player-controls {
+      margin-top: 20px;
+      display: none;
+      gap: 10px;
+    }
+    .control {
+      background: #222;
+      padding: 10px 15px;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <h2>🎧 Moka Spotify Player</h2>
+  <button id="login-btn">Login with Spotify</button>
+
+  <div id="player-controls">
+    <div class="control" id="prev">⏮️</div>
+    <div class="control" id="play">⏯️</div>
+    <div class="control" id="next">⏭️</div>
+  </div>
+
+  <script src="https://sdk.scdn.co/spotify-player.js"></script>
+  <script>
+    const CLIENT_ID = "YOUR_SPOTIFY_CLIENT_ID"; // replace later via .env on Vercel
+    const REDIRECT_URI = window.location.origin + "/callback";
+
+    const scopes = [
+      "streaming",
+      "user-read-email",
+      "user-read-private",
+      "user-modify-playback-state",
+      "user-read-playback-state"
+    ];
+
+    const loginBtn = document.getElementById("login-btn");
+    const controls = document.getElementById("player-controls");
+
+    loginBtn.addEventListener("click", () => {
+      const authUrl =
+        "https://accounts.spotify.com/authorize" +
+        "?client_id=" + CLIENT_ID +
+        "&response_type=token" +
+        "&redirect_uri=" + encodeURIComponent(REDIRECT_URI) +
+        "&scope=" + encodeURIComponent(scopes.join(" "));
+      window.location = authUrl;
+    });
+
+    // When redirected back with token
+    window.onload = () => {
+      const hash = window.location.hash.substring(1);
+      const params = new URLSearchParams(hash);
+      const token = params.get("access_token");
+      if (token) {
+        loginBtn.style.display = "none";
+        controls.style.display = "flex";
+        startPlayer(token);
+      }
+    };
+
+    function startPlayer(token) {
+      window.onSpotifyWebPlaybackSDKReady = () => {
+        const player = new Spotify.Player({
+          name: "Moka Web Player",
+          getOAuthToken: cb => { cb(token); },
+          volume: 0.7
+        });
+
+        player.addListener("ready", ({ device_id }) => {
+          console.log("Ready with Device ID", device_id);
+          // You can start playback via Web API:
+          // fetch(`https://api.spotify.com/v1/me/player/play?device_id=${device_id}`, {...})
+        });
+
+        player.addListener("not_ready", ({ device_id }) => {
+          console.log("Device ID has gone offline", device_id);
+        });
+
+        player.connect();
+
+        document.getElementById("play").onclick = () => player.togglePlay();
+        document.getElementById("next").onclick = () => player.nextTrack();
+        document.getElementById("prev").onclick = () => player.previousTrack();
+      };
+    }
+  </script>
+</body>
+</html>
