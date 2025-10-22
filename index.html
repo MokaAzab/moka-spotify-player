@@ -52,6 +52,7 @@
   <script>
     const CLIENT_ID = "8905bfe58e0c4ca89519d97679e68830";
     const REDIRECT_URI = window.location.origin + "/callback";
+    const TOKEN_KEY = "moka_spotify_token";
 
     const scopes = [
       "streaming",
@@ -64,7 +65,7 @@
     const loginBtn = document.getElementById("login-btn");
     const controls = document.getElementById("player-controls");
 
-    loginBtn.addEventListener("click", () => {
+    function redirectToSpotifyAuth() {
       const authUrl =
         "https://accounts.spotify.com/authorize" +
         "?client_id=" + CLIENT_ID +
@@ -72,20 +73,26 @@
         "&redirect_uri=" + encodeURIComponent(REDIRECT_URI) +
         "&scope=" + encodeURIComponent(scopes.join(" "));
       window.location = authUrl;
-    });
+    }
 
-    window.onload = () => {
+    function getTokenFromUrl() {
       const hash = window.location.hash.substring(1);
       const params = new URLSearchParams(hash);
-      const token = params.get("access_token");
-      if (token) {
-        loginBtn.style.display = "none";
-        controls.style.display = "flex";
-        startPlayer(token);
-      }
-    };
+      return params.get("access_token");
+    }
+
+    function saveToken(token) {
+      localStorage.setItem(TOKEN_KEY, token);
+    }
+
+    function getSavedToken() {
+      return localStorage.getItem(TOKEN_KEY);
+    }
 
     function startPlayer(token) {
+      loginBtn.style.display = "none";
+      controls.style.display = "flex";
+
       window.onSpotifyWebPlaybackSDKReady = () => {
         const player = new Spotify.Player({
           name: "Moka Web Player",
@@ -108,6 +115,23 @@
         document.getElementById("prev").onclick = () => player.previousTrack();
       };
     }
+
+    window.onload = () => {
+      const urlToken = getTokenFromUrl();
+      if (urlToken) {
+        saveToken(urlToken);
+        window.location.hash = ""; // clean URL
+        startPlayer(urlToken);
+        return;
+      }
+
+      const savedToken = getSavedToken();
+      if (savedToken) {
+        startPlayer(savedToken);
+      } else {
+        loginBtn.addEventListener("click", redirectToSpotifyAuth);
+      }
+    };
   </script>
 </body>
 </html>
