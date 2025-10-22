@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Spotify Callback</title>
+  <script>
+    // This runs immediately when Spotify redirects here
+    const hash = window.location.hash;
+    if (hash) {
+      // Redirect back to the main player page with the token info
+      window.location.href = window.location.origin + "/" + hash;
+    } else {
+      // Safety fallback
+      window.location.href = window.location.origin;
+    }
+  </script>
+</head>
+<body style="background:#000; color:#fff; display:flex; align-items:center; justify-content:center; height:100vh; font-family:sans-serif;">
+  <p>Connecting to Spotify...</p>
+</body>
+</html>
