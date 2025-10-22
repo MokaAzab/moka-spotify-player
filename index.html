@@ -40,7 +40,7 @@
 </head>
 <body>
   <h2>🎧 Moka Spotify Player</h2>
-  <button id="login-btn">Login with Spotify</button>
+  <button id="login-btn" onclick="redirectToSpotifyAuth()">Login with Spotify</button>
 
   <div id="player-controls">
     <div class="control" id="prev">⏮️</div>
@@ -48,11 +48,8 @@
     <div class="control" id="next">⏭️</div>
   </div>
 
-  <script src="https://sdk.scdn.co/spotify-player.js"></script>
   <script>
-    // Your Spotify Client ID
     const CLIENT_ID = "8905bfe58e0c4ca89519d97679e68830";
-    // Redirect to callback.html
     const REDIRECT_URI = window.location.origin + "/callback.html";
     const TOKEN_KEY = "moka_spotify_token";
 
@@ -64,9 +61,6 @@
       "user-read-playback-state"
     ];
 
-    const loginBtn = document.getElementById("login-btn");
-    const controls = document.getElementById("player-controls");
-
     function redirectToSpotifyAuth() {
       const authUrl =
         "https://accounts.spotify.com/authorize" +
@@ -74,7 +68,8 @@
         "&response_type=token" +
         "&redirect_uri=" + encodeURIComponent(REDIRECT_URI) +
         "&scope=" + encodeURIComponent(scopes.join(" "));
-      window.location = authUrl;
+      console.log("Redirecting to:", authUrl);
+      window.location.href = authUrl;
     }
 
     function getTokenFromUrl() {
@@ -92,23 +87,22 @@
     }
 
     function startPlayer(token) {
-      loginBtn.style.display = "none";
-      controls.style.display = "flex";
+      document.getElementById("login-btn").style.display = "none";
+      document.getElementById("player-controls").style.display = "flex";
 
       window.onSpotifyWebPlaybackSDKReady = () => {
         const player = new Spotify.Player({
           name: "Moka Web Player",
-          getOAuthToken: cb => { cb(token); },
+          getOAuthToken: cb => cb(token),
           volume: 0.7
         });
 
-        player.addListener("ready", ({ device_id }) => {
-          console.log("Ready with Device ID", device_id);
-        });
-
-        player.addListener("not_ready", ({ device_id }) => {
-          console.log("Device ID has gone offline", device_id);
-        });
+        player.addListener("ready", ({ device_id }) =>
+          console.log("Ready with Device ID", device_id)
+        );
+        player.addListener("not_ready", ({ device_id }) =>
+          console.log("Device ID has gone offline", device_id)
+        );
 
         player.connect();
 
@@ -119,21 +113,18 @@
     }
 
     window.onload = () => {
-      const urlToken = getTokenFromUrl();
-      if (urlToken) {
-        saveToken(urlToken);
+      const tokenFromUrl = getTokenFromUrl();
+      if (tokenFromUrl) {
+        saveToken(tokenFromUrl);
         window.location.hash = "";
-        startPlayer(urlToken);
+        startPlayer(tokenFromUrl);
         return;
       }
 
       const savedToken = getSavedToken();
-      if (savedToken) {
-        startPlayer(savedToken);
-      } else {
-        loginBtn.addEventListener("click", redirectToSpotifyAuth);
-      }
+      if (savedToken) startPlayer(savedToken);
     };
   </script>
+  <script src="https://sdk.scdn.co/spotify-player.js"></script>
 </body>
 </html>
