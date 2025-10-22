@@ -50,8 +50,9 @@
 
   <script src="https://sdk.scdn.co/spotify-player.js"></script>
   <script>
-    const CLIENT_ID = "8905bfe58e0c4ca89519d97679e68830";
-    const REDIRECT_URI = window.location.origin + "/callback";
+    // These get replaced by Vercel during build
+    const CLIENT_ID = import.meta.env.VITE_SPOTIFY_CLIENT_ID || "missing_client_id";
+    const REDIRECT_URI = import.meta.env.VITE_SPOTIFY_REDIRECT_URI || (window.location.origin + "/callback");
     const TOKEN_KEY = "moka_spotify_token";
 
     const scopes = [
@@ -120,7 +121,7 @@
       const urlToken = getTokenFromUrl();
       if (urlToken) {
         saveToken(urlToken);
-        window.location.hash = ""; // clean URL
+        window.location.hash = "";
         startPlayer(urlToken);
         return;
       }
