@@ -50,7 +50,7 @@
 
   <script src="https://sdk.scdn.co/spotify-player.js"></script>
   <script>
-    const CLIENT_ID = "YOUR_SPOTIFY_CLIENT_ID"; // replace later via .env on Vercel
+    const CLIENT_ID = "8905bfe58e0c4ca89519d97679e68830";
     const REDIRECT_URI = window.location.origin + "/callback";
 
     const scopes = [
@@ -74,7 +74,6 @@
       window.location = authUrl;
     });
 
-    // When redirected back with token
     window.onload = () => {
       const hash = window.location.hash.substring(1);
       const params = new URLSearchParams(hash);
@@ -96,8 +95,6 @@
 
         player.addListener("ready", ({ device_id }) => {
           console.log("Ready with Device ID", device_id);
-          // You can start playback via Web API:
-          // fetch(`https://api.spotify.com/v1/me/player/play?device_id=${device_id}`, {...})
         });
 
         player.addListener("not_ready", ({ device_id }) => {
